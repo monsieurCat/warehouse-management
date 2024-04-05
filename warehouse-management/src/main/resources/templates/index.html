@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Warehouse Manager</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="../static/index.js" defer></script> <!-- defer will wait to load your script until your html has finished parsing-->
+  <style>
+    /* Add CSS for smooth transitions */
+    .collapse {
+      transition: height 0.3s ease-in-out;
+      height: 0; /* Set a fixed height for the collapsed state */
+      overflow: hidden; /* Hide overflow content */
+    }
+
+    .collapse.show {
+      height: auto; /* Let the height adjust dynamically when expanding */
+    }
+
+    /* header styling */
+    #api-header {
+      padding-bottom: 10px;
+      padding-top: 10px;
+      background-color: #343a40;
+      color: #ffffff;
+      text-align: center; 
+      position: relative;
+      z-index: 1000;
+    }
+
+    /* Error alerts styling */
+    #warehouse-error {
+      margin-left: 100px;
+      margin-right: 100px;
+    }
+
+    body, html {
+      overflow-x: hidden;
+    }
+
+    .row {
+      margin-right: -175px;
+    }
+
+    #table-container {
+      margin-left: 100px;
+      margin-right: 100px;
+    }
+
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <div class="container-fluid ps-0">
+    <div class="row flex-nowrap g-0">
+
+      <!--SIDEBAR NAV-->
+      <div class="col-lg-2 col-md-2 col-xl-2 bg-dark sidebar">
+        <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+          <!--Menu button-->
+          <a href="/" class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+              <span class="fs-5 d-none d-sm-inline">Menu</span>
+          </a>
+          <!--Menu items list-->
+          <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+            <li class="nav-item">
+              <a href="#" id="home-button" class="nav-link align-middle px-0">
+                <i class="fs-4 bi-house"></i> <span class="ms-1 d-none d-sm-inline">Home</span>
+              </a>
+            </li>
+            <!--WAREHOUSE SUBMENU-->
+            <li>
+              <a href="#submenu1" data-bs-toggle="collapse" data-bs-target="#warehouse-submenu" class="nav-link px-0 align-middle">
+                <i class="fs-4 bi-speedometer2"></i> <span class="ms-1 d-none d-sm-inline">Warehouses</span> 
+              </a>
+              <ul id="warehouse-submenu" class="collapse nav flex-column ms-1" data-bs-parent="#menu">
+                <!--Warehouse names will be added here-->
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <!--END OF SIDEBAR NAV-->
+
+      <!--REST OF THE SCREEN-->
+      <div class="col-lg-9 pe-0 me-0">
+        <div class="container-fluid">
+          <h1 id="api-header" class="text-center">Warehouses</h1>
+          <!-- Create Warehouse button -->
+          <div id="button-container" class="d-grid" style="margin-bottom: 10px; margin-top: 10px;">
+            <button class="btn btn-primary text-center create-warehouse" data-bs-toggle="modal" data-bs-target="#new-warehouse-modal">Create Warehouse</button>
+          </div>
+          <!-- Table -->
+          <div class="justify-content-center">
+            <div>
+              <!--Warehouse error messages should be displayed here-->
+              <div id="warehouse-error">
+
+              </div>
+              <div id="table-container">
+                <table class="table text-center table-hover table-striped warehouse-table">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Description</th>
+                      <th>Current Capacity</th>
+                      <th>Max Capacity</th>
+                      <th>Edit</th>
+                      <th>Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody id="warehouse-table-body">
+                    <!-- Table rows will be dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Bootstrap modal for creating a new warehouse -->
+    <div class="modal fade" id="new-warehouse-modal" tabindex="-1" aria-labelledby="new-warehouse-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="new-warehouse-modal-label">Create Warehouse</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- NEW WAREHOUSE FORM -->
+            <form id="new-warehouse-form" action="#"> <!-- action="#" prevents page redirections when form is submited -->
+
+              <div class="form-group">
+                <label>Warehouse Name</label>
+                <input id="new-warehouse-name" name="new-warehouse-name" type="text" class="form-control"/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Description</label>
+                <input id="new-warehouse-description" name="new-warehouse-description" type="text" class="form-control"/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Max Capacity</label>
+                <input id="new-warehouse-max-capacity" name="new-warehouse-max-capacity" type="number" class="form-control"/>
+              </div>
+
+            </form>
+          </div>
+          <!--FORM BUTTONS-->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="save-button" name="save-button" type="submit" form="new-warehouse-form" data-bs-dismiss="modal" value="Save" class="btn btn-primary">Save</button> 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap modal for updating a new warehouse -->
+    <div class="modal fade" id="update-warehouse-modal" tabindex="-1" aria-labelledby="update-warehouse-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="update-warehouse-modal-label">Update Warehouse</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- UPDATE WAREHOUSE FORM -->
+            <form id="update-warehouse-form" action="#">
+
+              <div class="form-group">
+                <label>Warehouse ID</label>
+                <input id="update-warehouse-id" name="update-warehouse-id" type="text" class="form-control" disabled/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Name</label>
+                <input id="update-warehouse-name" name="update-warehouse-name" type="text" class="form-control"/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Description</label>
+                <input id="update-warehouse-description" name="update-warehouse-description" type="text" class="form-control"/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Max Capacity</label>
+                <input id="update-warehouse-max-capacity" name="update-warehouse-max-capacity" type="text" class="form-control"/>
+              </div>
+            </form>
+          </div>
+          <!--FORM BUTTONS-->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="update-button" name="update-button" type="submit" data-bs-dismiss="modal" form="update-warehouse-form" value="Update" class="btn btn-primary">Update</button> 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap modal for Deleting a new warehouse -->
+    <div class="modal fade" id="delete-warehouse-modal" tabindex="-1" aria-labelledby="delete-warehouse-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="new-warehouse-modal-label">Delete Warehouse</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- DELETE WAREHOUSE FORM -->
+            <form id="delete-warehouse-form" action="#">
+
+              <div class="form-group">
+                <label>Warehouse ID</label>
+                <input id="delete-warehouse-id" name="delete-warehouse-id" type="text" class="form-control" disabled/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Name</label>
+                <input id="delete-warehouse-name" name="delete-warehouse-name" type="text" class="form-control" disabled/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Description</label>
+                <input id="delete-warehouse-description" name="delete-warehouse-description" type="text" class="form-control" disabled/>
+              </div>
+              <br/>
+              <div class="form-group">
+                <label>Warehouse Max Capacity</label>
+                <input id="delete-warehouse-max-capacity" name="delete-warehouse-max-capacity" type="text" class="form-control" disabled/>
+              </div>
+
+            </form>
+          </div>
+          <!--FORM BUTTONS-->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="delete-button" name="delete-button" type="submit" data-bs-dismiss="modal" form="delete-warehouse-form" value="Delete" class="btn btn-primary">Delete</button> 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap modal for creating a new product -->
+    <div class="modal fade" id="new-product-modal" tabindex="-1" aria-labelledby="new-warehouse-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="new-product-modal-label">Add product</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- NEW PRODUCT FORM -->
+            <form id="new-product-form" action="#"> <!-- action="#" prevents page redirections when form is submited -->
+
+              <div class="form-group">
+                <label>Product Name</label>
+                <input id="new-product-name" name="new-product-name" type="text" class="form-control"/>
+              </div>
+              <div class="form-group">
+                <label>Product Description</label>
+                <input id="new-product-description" name="new-product-description" type="text" class="form-control"/>
+              </div>
+              <div class="form-group">
+                <label>Product Category</label>
+                <input id="new-product-category" name="new-product-category" type="text" class="form-control"/>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-3">
+                  <label for="size">Product Size</label>
+                  <select id="new-product-size" name="new-product-size" class="form-control" aria-label="Default select example">
+                    <option selected value="SMALL">Small</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LARGE">Large</option>
+                    <option value="EXTRA_LARGE">Extra Large</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Product Price</label>
+                  <input id="new-product-price" name="new-product-price" type="text" class="form-control"/>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Product Quantity</label>
+                  <input id="new-product-quantity" name="new-product-quantity" type="number" class="form-control"/>
+                </div>
+              </div>
+
+            </form>
+          </div>
+          <!--FORM BUTTONS-->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="save-button" name="save-button" type="submit" form="new-product-form" data-bs-dismiss="modal" value="Save" class="btn btn-primary">Save</button> 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap modal for updating a new product -->
+    <div class="modal fade" id="update-product-modal" tabindex="-1" aria-labelledby="update-warehouse-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="update-product-modal-label">Update product</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- UPDATE PRODUCT FORM -->
+            <form id="update-product-form" action="#"> <!-- action="#" prevents page redirections when form is submited -->
+
+              <div class="form-group">
+                <label>Product Name</label>
+                <input id="update-product-name" name="update-product-name" type="text" class="form-control" disabled/>
+              </div>
+              <div class="form-group">
+                <label>Product Description</label>
+                <input id="update-product-description" name="update-product-description" type="text" class="form-control"/>
+              </div>
+              <div class="form-group">
+                <label>Product Category</label>
+                <input id="update-product-category" name="update-product-category" type="text" class="form-control" disabled/>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-3">
+                  <label for="size">Product Size</label>
+                  <select id="update-product-size" name="update-product-size" class="form-control" aria-label="Default select example" disabled>
+                    <option selected value="SMALL">Small</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LARGE">Large</option>
+                    <option value="EXTRA_LARGE">Extra Large</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Product Price</label>
+                  <input id="update-product-price" name="update-product-price" type="text" class="form-control"/>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Product Quantity</label>
+                  <input id="update-product-quantity" name="update-product-quantity" type="number" class="form-control"/>
+                </div>
+              </div>
+
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="update-button" name="update-button" type="submit" form="update-product-form" data-bs-dismiss="modal" value="Update" class="btn btn-primary">Update</button> 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap modal for creating a new product -->
+    <div class="modal fade" id="delete-product-modal" tabindex="-1" aria-labelledby="delete-warehouse-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="delete-product-modal-label">Delete product</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- DELETE PRODUCT FORM -->
+            <form id="delete-product-form" action="#"> <!-- action="#" prevents page redirections when form is submited -->
+
+              <div class="form-group">
+                <label>Product Name</label>
+                <input id="delete-product-name" name="delete-product-name" type="text" class="form-control" disabled/>
+              </div>
+              <div class="form-group">
+                <label>Product Description</label>
+                <input id="delete-product-description" name="delete-product-description" type="text" class="form-control" disabled/>
+              </div>
+              <div class="form-group">
+                <label>Product Category</label>
+                <input id="delete-product-category" name="delete-product-category" type="text" class="form-control" disabled/>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-3">
+                  <label for="size">Product Size</label>
+                  <select id="delete-product-size" name="delete-product-size" class="form-control" aria-label="Default select example" disabled>
+                    <option selected value="SMALL">Small</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LARGE">Large</option>
+                    <option value="EXTRA_LARGE">Extra Large</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Product Price</label>
+                  <input id="delete-product-price" name="delete-product-price" type="text" class="form-control" disabled/>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Product Quantity</label>
+                  <input id="delete-product-quantity" name="delete-product-quantity" type="number" class="form-control" disabled/>
+                </div>
+              </div>
+
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button id="delete-button" name="delete-button" type="submit" form="delete-product-form" data-bs-dismiss="modal" value="Delete" class="btn btn-primary">Delete</button> 
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
